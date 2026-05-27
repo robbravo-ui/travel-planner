@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Trip Planner"/>
+<title>Trip Command Centre</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#0D1B2A;min-height:100vh;color:#0D1B2A;}
+.app{max-width:430px;margin:0 auto;min-height:100vh;background:#FDFAF4;}
+.hero{background:linear-gradient(160deg,#1A6B72 0%,#0D1B2A 100%);padding:44px 22px 24px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;width:260px;height:260px;border-radius:50%;background:rgba(201,168,76,0.1);top:-70px;right:-70px;}
+.hero-tag{font-size:10px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#C9A84C;margin-bottom:6px;position:relative;}
+.hero-title{font-family:'Playfair Display',serif;font-size:28px;color:white;line-height:1.2;margin-bottom:2px;position:relative;}
+.hero-sub{font-size:12px;color:rgba(255,255,255,0.45);font-weight:300;position:relative;}
+.hero-trip{margin-top:14px;background:rgba(255,255,255,0.08);border-radius:10px;padding:10px 13px;display:flex;align-items:center;justify-content:space-between;position:relative;}
+.hero-trip-name{font-family:'Playfair Display',serif;font-size:15px;color:white;}
+.hero-trip-dates{font-size:11px;color:rgba(255,255,255,0.5);margin-top:1px;}
+.hero-edit-btn{background:rgba(255,255,255,0.12);border:none;border-radius:7px;padding:5px 10px;font-size:11px;color:rgba(255,255,255,0.7);cursor:pointer;font-family:'DM Sans',sans-serif;}
+.trip-edit-form{margin-top:12px;background:rgba(255,255,255,0.1);border-radius:10px;padding:12px;position:relative;}
+.trip-edit-form input{width:100%;padding:8px 11px;border:1px solid rgba(255,255,255,0.2);border-radius:8px;background:rgba(255,255,255,0.15);color:white;font-family:'DM Sans',sans-serif;font-size:13px;margin-bottom:7px;outline:none;}
+.trip-edit-form input::placeholder{color:rgba(255,255,255,0.45);}
+.trip-btn-row{display:flex;gap:8px;}
+.trip-save-btn{flex:1;padding:9px;background:linear-gradient(135deg,#1A6B72,#0f4a52);color:white;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;}
+.trip-cancel-btn{flex:1;padding:9px;background:none;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;}
+.nav{display:flex;background:white;border-bottom:1px solid rgba(0,0,0,0.06);position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.07);overflow-x:auto;}
+.nav-btn{flex:1;min-width:50px;padding:10px 2px;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:8px;font-weight:500;color:#8FA8A0;display:flex;flex-direction:column;align-items:center;gap:3px;white-space:nowrap;}
+.nav-btn.active{color:#1A6B72;border-bottom-color:#1A6B72;}
+.nav-icon{font-size:15px;}
+.content{padding:16px 14px 100px;}
+.section-title{font-family:'Playfair Display',serif;font-size:20px;color:#0D1B2A;margin-bottom:2px;}
+.section-sub{font-size:11px;color:#8FA8A0;margin-bottom:14px;font-weight:300;}
+.tab{display:none;} .tab.active{display:block;}
+/* Info cards */
+.info-card{background:white;border-radius:14px;margin-bottom:10px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+.info-card-header{display:flex;align-items:center;justify-content:space-between;padding:13px 15px 0;}
+.info-card-title{font-family:'Playfair Display',serif;font-size:15px;color:#0D1B2A;display:flex;align-items:center;gap:7px;}
+.edit-btn{font-size:11px;color:#1A6B72;font-family:'DM Sans',sans-serif;font-weight:500;padding:4px 8px;border-radius:6px;background:rgba(26,107,114,0.08);border:none;cursor:pointer;}
+.info-fields{padding:10px 15px 14px;}
+.info-row{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid rgba(0,0,0,0.04);}
+.info-row:last-child{border-bottom:none;}
+.info-label{font-size:10px;color:#8FA8A0;font-weight:500;letter-spacing:0.3px;text-transform:uppercase;flex-shrink:0;margin-right:12px;padding-top:1px;}
+.info-value{font-size:13px;color:#0D1B2A;text-align:right;word-break:break-word;}
+.info-value.hl{color:#1A6B72;font-weight:500;font-size:14px;}
+.info-value.urg{color:#E8634A;font-weight:500;}
+.info-empty{color:#C5D5D2;font-style:italic;font-size:12px;padding:8px 0;}
+/* Edit form */
+.edit-form{background:white;border-radius:14px;margin-bottom:10px;padding:15px;box-shadow:0 2px 10px rgba(0,0,0,0.06);display:none;}
+.edit-form.open{display:block;}
+.edit-form-title{font-family:'Playfair Display',serif;font-size:15px;color:#0D1B2A;margin-bottom:12px;}
+.fl{font-size:10px;font-weight:500;color:#1A6B72;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:4px;display:block;}
+.fi{width:100%;padding:9px 12px;border:1.5px solid rgba(0,0,0,0.1);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;color:#0D1B2A;background:#FDFAF4;margin-bottom:9px;outline:none;}
+.fi:focus{border-color:#1A6B72;}
+.save-btn{width:100%;padding:11px;background:linear-gradient(135deg,#1A6B72,#0f4a52);color:white;border:none;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;margin-top:4px;}
+.cancel-btn{width:100%;padding:10px;background:none;border:1.5px solid rgba(0,0,0,0.1);border-radius:11px;font-family:'DM Sans',sans-serif;font-size:13px;color:#8FA8A0;cursor:pointer;margin-top:6px;}
+/* Parking */
+.parking-card{background:white;border-radius:14px;padding:15px;margin-bottom:10px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+.parking-title{font-family:'Playfair Display',serif;font-size:15px;color:#0D1B2A;margin-bottom:3px;}
+.parking-sub{font-size:11px;color:#8FA8A0;margin-bottom:11px;font-weight:300;}
+.photo-slot{border-radius:11px;overflow:hidden;position:relative;height:140px;background:#F5EDD6;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:2px dashed rgba(26,107,114,0.2);margin-bottom:10px;}
+.photo-slot img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;}
+.photo-slot-icon{font-size:30px;margin-bottom:5px;}
+.photo-slot-label{font-size:11px;color:#8FA8A0;text-align:center;}
+.photo-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(13,27,42,0.8),transparent);padding:10px;color:white;font-size:11px;font-weight:500;}
+.clear-photo{position:absolute;top:8px;right:8px;background:rgba(13,27,42,0.6);border:none;border-radius:50%;width:26px;height:26px;color:white;font-size:13px;cursor:pointer;}
+.hidden{display:none;}
+/* Budget */
+.budget-wrap{background:white;border-radius:14px;padding:15px;margin-bottom:10px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+.budget-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px;}
+.budget-amt{font-family:'Playfair Display',serif;font-size:22px;color:#0D1B2A;}
+.bar-track{width:100%;height:7px;background:#F5EDD6;border-radius:8px;overflow:hidden;margin-bottom:7px;}
+.bar-fill{height:7px;border-radius:8px;transition:width 0.5s;}
+.bstatus{font-size:11px;font-weight:500;}
+.bstatus.ok{color:#1A6B72;} .bstatus.warn{color:#E8634A;}
+.exp-section-title{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#C9A84C;font-weight:500;margin:12px 0 7px;}
+.exp-item{background:white;border-radius:11px;padding:10px 12px;margin-bottom:7px;box-shadow:0 1px 5px rgba(0,0,0,0.05);display:flex;align-items:center;gap:9px;}
+.exp-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.exp-info{flex:1;min-width:0;}
+.exp-desc{font-size:13px;font-weight:500;color:#0D1B2A;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.exp-meta{font-size:10px;color:#8FA8A0;margin-top:1px;}
+.exp-right{text-align:right;flex-shrink:0;}
+.exp-amt{font-family:'Playfair Display',serif;font-size:14px;color:#0D1B2A;}
+.paid-badge{font-size:9px;padding:2px 6px;border-radius:7px;font-weight:500;margin-top:2px;display:inline-block;}
+.paid-badge.paid{background:rgba(26,107,114,0.1);color:#1A6B72;}
+.paid-badge.unpaid{background:rgba(232,99,74,0.09);color:#E8634A;}
+.del-btn{background:none;border:none;cursor:pointer;font-size:13px;color:#C5D5D2;padding:3px;}
+.add-form{background:white;border-radius:14px;padding:15px;margin-bottom:10px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+.form-row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.fsel{width:100%;padding:9px 12px;border:1.5px solid rgba(0,0,0,0.1);border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;color:#0D1B2A;background:#FDFAF4;margin-bottom:9px;outline:none;-webkit-appearance:none;appearance:none;}
+/* Reviews */
+.stars-row{display:flex;gap:5px;margin-bottom:9px;}
+.star-btn{font-size:22px;background:none;border:none;cursor:pointer;line-height:1;padding:0;}
+.review-card{background:white;border-radius:12px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 7px rgba(0,0,0,0.05);}
+.review-header{display:flex;justify-content:space-between;margin-bottom:4px;}
+.review-place{font-family:'Playfair Display',serif;font-size:14px;color:#0D1B2A;}
+.review-text{font-size:12px;color:#8FA8A0;line-height:1.5;font-weight:300;}
+.review-date{font-size:10px;color:rgba(143,168,160,0.45);margin-top:4px;}
+/* Report */
+.report-hero{background:linear-gradient(135deg,#1A6B72,#0D1B2A);border-radius:13px;padding:18px;margin-bottom:13px;color:white;text-align:center;}
+.report-trip-name{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:3px;}
+.report-dates{font-size:11px;opacity:0.6;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.stat-box{background:#F5EDD6;border-radius:10px;padding:11px;text-align:center;}
+.stat-val{font-family:'Playfair Display',serif;font-size:19px;color:#1A6B72;}
+.stat-label{font-size:9px;color:#8FA8A0;letter-spacing:0.5px;text-transform:uppercase;margin-top:1px;}
+.report-section{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#C9A84C;font-weight:500;margin:12px 0 7px;}
+.report-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(0,0,0,0.04);font-size:13px;}
+.report-row:last-child{border-bottom:none;}
+.rr-l{color:#0D1B2A;}
+.rr-v{color:#8FA8A0;font-weight:300;text-align:right;max-width:55%;}
+.export-btn{width:100%;padding:13px;background:linear-gradient(135deg,#E8634A,#c44a33);color:white;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;margin-top:8px;}
+.report-card{background:white;border-radius:14px;padding:18px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,0.06);}
+.empty-msg{text-align:center;color:#C5D5D2;font-size:13px;padding:20px 0;}
+/* Toast */
+.toast{position:fixed;bottom:86px;left:50%;transform:translateX(-50%);background:#0D1B2A;color:white;padding:9px 18px;border-radius:20px;font-size:12px;font-weight:500;z-index:999;white-space:nowrap;opacity:0;transition:opacity 0.3s;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">✦ Trip Command Centre</div>
+    <div class="hero-title">Everything<br><em>in one place</em></div>
+    <div class="hero-sub">Your complete travel reference</div>
+    <div class="hero-trip">
+      <div>
+        <div class="hero-trip-name" id="tripName">Your Trip Name</div>
+        <div class="hero-trip-dates" id="tripDates">Tap Edit Trip to set your details</div>
+      </div>
+      <button class="hero-edit-btn" onclick="toggleTripEdit()">Edit Trip</button>
+    </div>
+    <div class="trip-edit-form hidden" id="tripEditForm">
+      <input id="tName" placeholder="Trip name (e.g. Italy 2025)"/>
+      <input id="tDest" placeholder="Destination"/>
+      <input id="tDates" placeholder="Dates (e.g. Jun 14–21)"/>
+      <input id="tTravelers" placeholder="Travellers (e.g. 2 adults)"/>
+      <div class="trip-btn-row">
+        <button class="trip-save-btn" onclick="saveTripInfo()">Save</button>
+        <button class="trip-cancel-btn" onclick="toggleTripEdit()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav">
+    <button class="nav-btn active" onclick="showTab('flights',this)"><span class="nav-icon">✈️</span>Flights</button>
+    <button class="nav-btn" onclick="showTab('stay',this)"><span class="nav-icon">🏨</span>Stay</button>
+    <button class="nav-btn" onclick="showTab('transport',this)"><span class="nav-icon">🚗</span>Travel</button>
+    <button class="nav-btn" onclick="showTab('docs',this)"><span class="nav-icon">📁</span>Docs</button>
+    <button class="nav-btn" onclick="showTab('plans',this)"><span class="nav-icon">📅</span>Plans</button>
+    <button class="nav-btn" onclick="showTab('budget',this)"><span class="nav-icon">💰</span>Budget</button>
+    <button class="nav-btn" onclick="showTab('notes',this)"><span class="nav-icon">⭐</span>Notes</button>
+    <button class="nav-btn" onclick="showTab('report',this)"><span class="nav-icon">📄</span>Report</button>
+  </div>
+
+  <div class="content">
+
+    <!-- FLIGHTS -->
+    <div id="tab-flights" class="tab active">
+      <div class="section-title">Flights</div>
+      <div class="section-sub">Outbound and return flight details</div>
+      <div id="view-outbound"></div>
+      <div id="form-outbound" class="edit-form">
+        <div class="edit-form-title">🛫 Outbound Flight</div>
+        <label class="fl">Airline</label><input class="fi" id="ob-airline" placeholder="e.g. British Airways"/>
+        <label class="fl">Flight Number</label><input class="fi" id="ob-flightNo" placeholder="e.g. BA2345"/>
+        <label class="fl">Date</label><input class="fi" id="ob-date" placeholder="e.g. 14 Jun 2025"/>
+        <label class="fl">Departs</label><input class="fi" id="ob-departs" placeholder="e.g. 09:45 LHR Terminal 5"/>
+        <label class="fl">Arrives</label><input class="fi" id="ob-arrives" placeholder="e.g. 13:10 NAP"/>
+        <label class="fl">Booking Reference</label><input class="fi" id="ob-booking" placeholder="e.g. ABC123"/>
+        <label class="fl">Seat(s)</label><input class="fi" id="ob-seat" placeholder="e.g. 24A, 24B"/>
+        <label class="fl">Baggage</label><input class="fi" id="ob-baggage" placeholder="e.g. 23kg hold + cabin"/>
+        <label class="fl">Check-in Opens</label><input class="fi" id="ob-checkin" placeholder="e.g. 24hrs before"/>
+        <button class="save-btn" onclick="saveCard('outbound')">Save</button>
+        <button class="cancel-btn" onclick="cancelCard('outbound')">Cancel</button>
+      </div>
+      <div id="view-inbound"></div>
+      <div id="form-inbound" class="edit-form">
+        <div class="edit-form-title">🛬 Return Flight</div>
+        <label class="fl">Airline</label><input class="fi" id="ib-airline" placeholder="e.g. British Airways"/>
+        <label class="fl">Flight Number</label><input class="fi" id="ib-flightNo" placeholder="e.g. BA2346"/>
+        <label class="fl">Date</label><input class="fi" id="ib-date" placeholder="e.g. 21 Jun 2025"/>
+        <label class="fl">Departs</label><input class="fi" id="ib-departs" placeholder="e.g. 15:30 NAP"/>
+        <label class="fl">Arrives</label><input class="fi" id="ib-arrives" placeholder="e.g. 17:00 LHR Terminal 5"/>
+        <label class="fl">Booking Reference</label><input class="fi" id="ib-booking" placeholder="e.g. ABC123"/>
+        <label class="fl">Seat(s)</label><input class="fi" id="ib-seat" placeholder="e.g. 24A, 24B"/>
+        <label class="fl">Terminal</label><input class="fi" id="ib-terminal" placeholder="e.g. Terminal 2"/>
+        <button class="save-btn" onclick="saveCard('inbound')">Save</button>
+        <button class="cancel-btn" onclick="cancelCard('inbound')">Cancel</button>
+      </div>
+    </div>
+
+    <!-- STAY -->
+    <div id="tab-stay" class="tab">
+      <div class="section-title">Accommodation</div>
+      <div class="section-sub">Hotel details and confirmation</div>
+      <div id="view-hotel"></div>
+      <div id="form-hotel" class="edit-form">
+        <div class="edit-form-title">🏨 Hotel</div>
+        <label class="fl">Hotel Name</label><input class="fi" id="h-name" placeholder="Hotel name"/>
+        <label class="fl">Address</label><input class="fi" id="h-address" placeholder="Full address"/>
+        <label class="fl">Phone</label><input class="fi" id="h-phone" placeholder="Hotel direct number"/>
+        <label class="fl">Email</label><input class="fi" id="h-email" placeholder="Hotel email"/>
+        <label class="fl">Confirmation No.</label><input class="fi" id="h-confirmation" placeholder="Booking reference"/>
+        <label class="fl">Check-in</label><input class="fi" id="h-checkin" placeholder="e.g. From 3:00 PM"/>
+        <label class="fl">Check-out</label><input class="fi" id="h-checkout" placeholder="e.g. By 11:00 AM"/>
+        <label class="fl">Nights</label><input class="fi" id="h-nights" placeholder="e.g. 7"/>
+        <label class="fl">Room Type</label><input class="fi" id="h-room" placeholder="e.g. Superior Sea View"/>
+        <label class="fl">Breakfast</label><input class="fi" id="h-breakfast" placeholder="e.g. Included"/>
+        <label class="fl">WiFi</label><input class="fi" id="h-wifi" placeholder="e.g. Free / Password: xxxx"/>
+        <label class="fl">Parking</label><input class="fi" id="h-parking" placeholder="e.g. On-site €15/night"/>
+        <label class="fl">Notes</label><input class="fi" id="h-notes" placeholder="Special requests, notes"/>
+        <button class="save-btn" onclick="saveCard('hotel')">Save</button>
+        <button class="cancel-btn" onclick="cancelCard('hotel')">Cancel</button>
+      </div>
+    </div>
+
+    <!-- TRANSPORT -->
+    <div id="tab-transport" class="tab">
+      <div class="section-title">Travel & Transport</div>
+      <div class="section-sub">Getting there and getting around</div>
+
+      <div class="parking-card">
+        <div class="parking-title">🅿️ Airport Parking</div>
+        <div class="parking-sub">Photo your spot on the way out — find it easily on return</div>
+        <div class="photo-slot" id="parkingSlot" onclick="document.getElementById('parkingInput').click()">
+          <div class="photo-slot-icon">📷</div>
+          <div class="photo-slot-label">Tap to photograph your parking spot</div>
+        </div>
+        <input type="file" id="parkingInput" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto('parking',this)"/>
+      </div>
+
+      <div class="parking-card">
+        <div class="parking-title">🚌 Airport Transfer / Bus Stop</div>
+        <div class="parking-sub">Photo your drop-off point so you know where to return to</div>
+        <div class="photo-slot" id="busSlot" onclick="document.getElementById('busInput').click()">
+          <div class="photo-slot-icon">📷</div>
+          <div class="photo-slot-label">Tap to photograph your bus stop or drop-off</div>
+        </div>
+        <input type="file" id="busInput" accept="image/*" capture="environment" class="hidden" onchange="handlePhoto('bus',this)"/>
+      </div>
+
+      <div id="view-parking"></div>
+      <div id="form-parking" class="edit-form">
+        <div class="edit-form-title">🅿️ Parking Details</div>
+        <label class="fl">Car Park Name</label><input class="fi" id="p-location" placeholder="e.g. Long Stay Car Park 2"/>
+        <label class="fl">Level / Bay</label><input class="fi" id="p-bay" placeholder="e.g. Level 3, Bay 42B"/>
+        <label class="fl">Terminal</label><input class="fi" id="p-terminal" placeholder="e.g. Terminal 5"/>
+        <label class="fl">Shuttle Bus</label><input class="fi" id="p-shuttle" placeholder="e.g. Every 10 mins"/>
+        <label class="fl">Booking Reference</label><input class="fi" id="p-booking" placeholder="e.g. NCP-12345"/>
+        <label class="fl">Total Cost</label><input class="fi" id="p-cost" placeholder="e.g. £85 for 7 nights"/>
+        <label class="fl">Return Note</label><input class="fi" id="p-returnNote" placeholder="e.g. Bus stop outside Arrivals Door 4"/>
+        <button class="save-btn" onclick="saveCard('parking')">Save</button>
+        <button class="cancel-btn" onclick="cancelCard('parking')">Cancel</button>
+      </div>
+
+      <div id="view-carhire"></div>
+      <div id="form-carhire" class="edit-form">
+        <div class="edit-form-title">🚗 Car Hire</div>
+        <label class="fl">Company</label><input class="fi" id="c-company" placeholder="e.g. Hertz"/>
+        <label class="fl">Booking Reference</label><input class="fi" id="c-booking" placeholder="e.g. HZ-789456"/>
+        <label class="fl">Pick-up</label><input class="fi" id="c-pickup" placeholder="e.g. Naples Airport, 14:00"/>
+        <label class="fl">Drop-off</label><input class="fi" id="c-dropoff" placeholder="e.g. Naples Airport, 10:00"/>
+        <label class="fl">Vehicle</label><input class="fi" id="c-vehicle" placeholder="e.g. Fiat 500 or similar"/>
+        <label class="fl">Insurance</label><input class="fi" id="c-insurance" placeholder="e.g. Full cover included"/>
+        <label class="fl">Company Phone</label><input class="fi" id="c-phone" placeholder="Local contact number"/>
+        <label class="fl">Fuel Policy</label><input class="fi" id="c-fuel" placeholder="e.g. Full to full"/>
+        <label class="fl">Extras</label><input class="fi" id="c-extras" placeholder="e.g. GPS, child seat"/>
+        <button class="save-btn" onclick="saveCard('carhire')">Save</button>
+        <button class="cancel-btn" onclick="cancelCard('carhire')">Cancel</button>
+      </div>
+    </div>
+
+    <!-- DOCS -->
+    <div id="tab-docs" class="tab">
+      <div class="section-title">Documents</div>
+      <div class="section-sub">Key numbers you may need in a hurry</div>
+
+      <div id="view-insurance"></div>
+      <div id="form-insurance" class="edit-form">
+        <div class="edit-form-title">🛡️ Travel Insurance</div>
+        <label class="fl">Provider</label><input class="fi" id="ins-provider" placeholder="e.g. Aviva Travel"/>
+        <label class="fl">Policy Number</label><input class="fi" id="ins-policy" placeholder="Your policy number"/>
+        <label class="fl">24hr Emergency Line</label><input class="fi" id="ins-emergency" placeholder="Emergency phone number"/>
+        <label class="fl">Medical Cover</label><input class="fi" id="ins-medical" placeholder="e.g. £10 million"/>
+        <label class="fl">Cancellation Cover</label><input class="fi" id="ins-cancellation" placeholder="e.g. £5,000 per person"/>
+        <label class="fl">Excess</label><input class="fi" id="ins-excess" placeholder="e.g. £100 per claim"/>
+        <label class="fl">Valid Until</label><input class="fi" id="ins-expires" placeholder="Policy expiry date"/>
+        <button class="save-btn" onclick="saveCard('insurance')">Save</button>
+        <button class="cancel-btn" onclick="cancelCard('insurance')">Cancel</button>
+      </div>
+
+      <div id="view-passports"></div>
+      <div id="form-passports" class="edit-form">
+        <div class="edit-form-title">🪪 Passports & ID</div>
+        <label class="fl">Traveller 1 Name</label><input class="fi" id="pp-p1name" placeholder="Full name as on passport"/>
+        <label class="fl">Passport Number 1</label><input class="fi" id="pp-p1num" placeholder="Passport number"/>
+        <label class="fl">Expiry Date 1</label><input class="fi" id="pp-p1exp" placeholder="Expiry date"/>
+        <label class="fl">Traveller 2 Name</label><input class="fi" id="pp-p2name" placeholder="Full name as on passport"/>
+        <label class="fl">Passport Number 2</label><input class="fi" id="pp-p2num" placeholder="Passport number"/>
+        <label class="fl">Expiry Date 2</label><input class="fi" id="pp-p2exp" placeholder="Expiry date"/>
+        <label class="fl">Driving Licence</label><input class="fi" id="pp-driving" placeholder="Licence number if hiring a car"/>
+        <button class="save-btn" onclick="saveCard('passports')">Save</button>
+        <button class="cancel-btn" onclick="cancelCard('passports')">Cancel</button>
+      </div>
+
+      <div id="view-emergency"></div>
+      <div id="form-emergency" class="edit-form">
+        <div class="edit-form-title">🆘 Emergency Contacts</div>
+        <label class="fl">Local Emergency Number</label><input class="fi" id="em-local" placeholder="e.g. 112 (EU) or 911 (US)"/>
+        <label class="fl">Local Police</label><input class="fi" id="em-police" placeholder="Non-emergency number"/>
+        <label class="fl">Embassy</label><input class="fi" id="em-embassy" placeholder="Your country's embassy number"/>
+        <label class="fl">Nearest Hospital</label><input class="fi" id="em-hospital" placeholder="Name and address"/>
+        <label class="fl">Home Contact 1</label><input class="fi" id="em-contact1" placeholder="Name and number"/>
+        <label class="fl">Home Contact 2</label><input class="fi" id="em-contact2" placeholder="Backup contact"/>
+        <label class="fl">Bank — Lost Card</label><input class="fi" id="em-bank" placeholder="Bank emergency number"/>
+        <button class="save-btn" onclick="saveCard('emergency')">Save</button>
+        <button class="cancel-btn" onclick="cancelCard('emergency')">Cancel</button>
+      </div>
+    </div>
+
+    <!-- PLANS -->
+    <div id="tab-plans" class="tab">
+      <div class="section-title">Plans & Bookings</div>
+      <div class="section-sub">Restaurants, activities and reservations</div>
+
+      <div id="view-dining1"></div>
+      <div id="form-dining1" class="edit-form">
+        <div class="edit-form-title">🍽️ Restaurant 1</div>
+        <label class="fl">Name</label><input class="fi" id="d1-name" placeholder="Restaurant name"/>
+        <label class="fl">Date & Time</label><input class="fi" id="d1-date" placeholder="e.g. 15 Jun, 7:30 PM"/>
+        <label class="fl">Address</label><input class="fi" id="d1-address" placeholder="Full address"/>
+        <label class="fl">Phone</label><input class="fi" id="d1-phone" placeholder="Restaurant number"/>
+        <label class="fl">Booking Reference</label><input class="fi" id="d1-booking" placeholder="Confirmation number"/>
+        <label class="fl">Notes</label><input class="fi" id="d1-notes" placeholder="e.g. Window table requested"/>
+        <button class="save-btn" onclick="saveCard('dining1')">Save</button>
+        <button class="cancel-btn" onclick="cancelCard('dining1')">Cancel</button>
+      </div>
+
+      <div id="view-dining2"></div>
+      <div id="form-dining2" class="edit-form">
+        <div class="edit-form-title">🍽️ Restaurant 2</div>
+        <label class="fl">Name</label><input class="fi" id="d2-name" placeholder="Restaurant name"/>
+        <label class="fl">Date & Time</label><input class="fi" id="d2-date" placeholder="e.g. 17 Jun, 8:00 PM"/>
+        <label class="fl">Address</label><input class="fi" id="d2-address" placeholder="Full address"/>
+        <label class="fl">Phone</label><input class="fi" id="d2-phone" placeholder="Restaurant number"/>
+        <label class="fl">Booking Reference</label><input class="fi" id="d2-booking" placeholder="Confirmation number"/>
+        <label class="fl">Notes</label><input class="fi" id="d2-notes" placeholder="Any notes"/>
+        <button class="save-btn" onclick="saveCard('dining2')">Save</button>
+        <button class="cancel-btn" onclick="cancelCard('dining2')">Cancel</button>
+      </div>
+
+      <div id="view-activity1"></div>
+      <div id="form-activity1" class="edit-form">
+        <div class="edit-form-title">🎭 Activity 1</div>
+        <label class="fl">Activity</label><input class="fi" id="a1-name" placeholder="e.g. Boat tour"/>
+        <label class="fl">Date & Time</label><input class="fi" id="a1-date" placeholder="e.g. 16 Jun, 9:30 AM"/>
+        <label class="fl">Meeting Point</label><input class="fi" id="a1-meeting" placeholder="Where to go"/>
+        <label class="fl">Operator</label><input class="fi" id="a1-operator" placeholder="Company name"/>
+        <label class="fl">Phone</label><input class="fi" id="a1-phone" placeholder="Operator number"/>
+        <label class="fl">Booking Reference</label><input class="fi" id="a1-booking" placeholder="Confirmation"/>
+        <label class="fl">Cost</label><input class="fi" id="a1-cost" placeholder="e.g. €120 per couple"/>
+        <label class="fl">Notes</label><input class="fi" id="a1-notes" placeholder="What to bring, dress code etc."/>
+        <button class="save-btn" onclick="saveCard('activity1')">Save</button>
+        <button class="cancel-btn" onclick="cancelCard('activity1')">Cancel</button>
+      </div>
+
+      <div id="view-activity2"></div>
+      <div id="form-activity2" class="edit-form">
+        <div class="edit-form-title">🎭 Activity 2</div>
+        <label class="fl">Activity</label><input class="fi" id="a2-name" placeholder="e.g. Wine tasting"/>
+        <label class="fl">Date & Time</label><input class="fi" id="a2-date" placeholder="Date and time"/>
+        <label class="fl">Meeting Point</label><input class="fi" id="a2-meeting" placeholder="Where to go"/>
+        <label class="fl">Operator</label><input class="fi" id="a2-operator" placeholder="Company name"/>
+        <label class="fl">Phone</label><input class="fi" id="a2-phone" placeholder="Operator number"/>
+        <label class="fl">Booking Reference</label><input class="fi" id="a2-booking" placeholder="Confirmation"/>
+        <label class="fl">Cost</label><input class="fi" id="a2-cost" placeholder="Total cost"/>
+        <label class="fl">Notes</label><input class="fi" id="a2-notes" placeholder="Any notes"/>
+        <button class="save-btn" onclick="saveCard('activity2')">Save</button>
+        <button class="cancel-btn" onclick="cancelCard('activity2')">Cancel</button>
+      </div>
+    </div>
+
+    <!-- BUDGET -->
+    <div id="tab-budget" class="tab">
+      <div class="section-title">Budget</div>
+      <div class="section-sub">Plan and track your spending</div>
+      <div class="budget-wrap">
+        <div class="budget-row">
+          <div><div style="font-size:10px;color:#8FA8A0;text-transform:uppercase;letter-spacing:0.5px;">Total Planned</div><div class="budget-amt" id="totalSpend">$0</div></div>
+          <div style="text-align:right"><div style="font-size:10px;color:#8FA8A0;text-transform:uppercase;letter-spacing:0.5px;">Budget</div><div style="font-size:12px;color:#8FA8A0;" id="budgetAmt">$3,000</div></div>
+        </div>
+        <div class="bar-track"><div class="bar-fill" id="barFill" style="width:0%;background:#1A6B72;"></div></div>
+        <div style="display:flex;justify-content:space-between;">
+          <div class="bstatus ok" id="budgetStatus">✓ $3,000 remaining</div>
+          <div style="font-size:11px;color:#8FA8A0;" id="paidAmt">Paid: $0</div>
+        </div>
+      </div>
+      <div class="exp-section-title">Add Expense</div>
+      <div class="add-form">
+        <label class="fl">Description</label><input class="fi" id="exp-desc" placeholder="What is this expense?"/>
+        <div class="form-row2">
+          <div><label class="fl">Amount ($)</label><input class="fi" id="exp-amount" type="number" placeholder="0.00"/></div>
+          <div><label class="fl">Date</label><input class="fi" id="exp-date" placeholder="e.g. Jun 14"/></div>
+        </div>
+        <label class="fl">Category</label>
+        <select class="fsel" id="exp-cat">
+          <option value="flights">✈️ Flights</option>
+          <option value="accommodation">🏨 Accommodation</option>
+          <option value="dining">🍽️ Dining</option>
+          <option value="activities">🎭 Activities</option>
+          <option value="transport">🚗 Transport</option>
+          <option value="shopping">🛍️ Shopping</option>
+          <option value="other">📌 Other</option>
+        </select>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#0D1B2A;">
+          <input type="checkbox" id="exp-paid" style="width:15px;height:15px;accent-color:#1A6B72;"/> Already paid
+        </label>
+        <button class="save-btn" style="margin-top:10px;" onclick="addExpense()">Add Expense</button>
+      </div>
+      <div class="exp-section-title">All Expenses</div>
+      <div id="expenseList"><div class="empty-msg">No expenses yet — add your first one above</div></div>
+    </div>
+
+    <!-- NOTES -->
+    <div id="tab-notes" class="tab">
+      <div class="section-title">Trip Notes</div>
+      <div class="section-sub">Quick observations and reminders as you go</div>
+      <div class="add-form">
+        <label class="fl">Place or Experience</label><input class="fi" id="rev-place" placeholder="e.g. Hotel, Restaurant, Activity…"/>
+        <label class="fl">Rating</label>
+        <div class="stars-row" id="starsRow">
+          <button class="star-btn" onclick="setStars(1)">☆</button>
+          <button class="star-btn" onclick="setStars(2)">☆</button>
+          <button class="star-btn" onclick="setStars(3)">☆</button>
+          <button class="star-btn" onclick="setStars(4)">☆</button>
+          <button class="star-btn" onclick="setStars(5)">☆</button>
+        </div>
+        <label class="fl">Your Thoughts</label>
+        <textarea class="fi" id="rev-text" style="min-height:70px;resize:none;" placeholder="What to remember about this place?"></textarea>
+        <button class="save-btn" onclick="addReview()">Save Note</button>
+      </div>
+      <div id="reviewList"><div class="empty-msg">No notes yet — add your first one above</div></div>
+    </div>
+
+    <!-- REPORT -->
+    <div id="tab-report" class="tab">
+      <div class="section-title">Trip Report</div>
+      <div class="section-sub">Your full trip summary at a glance</div>
+      <div class="report-card">
+        <div class="report-hero">
+          <div class="report-trip-name" id="rptName">Your Trip</div>
+          <div class="report-dates" id="rptDates">Set your trip details above</div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="stat-val" id="rptExpCount">0</div><div class="stat-label">Expenses</div></div>
+          <div class="stat-box"><div class="stat-val" id="rptTotal">$0</div><div class="stat-label">Total Spend</div></div>
+          <div class="stat-box"><div class="stat-val" id="rptNotes">0</div><div class="stat-label">Notes</div></div>
+          <div class="stat-box"><div class="stat-val" id="rptRating">—</div><div class="stat-label">Avg Rating</div></div>
+        </div>
+        <div id="rptFlights"></div>
+        <div id="rptHotel"></div>
+        <div id="rptInsurance"></div>
+        <div id="rptEmergency"></div>
+        <div id="rptBudget"></div>
+        <div id="rptNotesList"></div>
+        <button class="export-btn" onclick="showToast('Report exported as PDF 📄')">📄 Export PDF Report</button>
+      </div>
+    </div>
+
+  </div><!-- end content -->
+</div><!-- end app -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────
+const BUDGET = 3000;
+let tripInfo = {name:'',destination:'',dates:'',travelers:''};
+let cards = {};
+let expenses = [];
+let reviews = [];
+let currentStars = 0;
+let expIdCounter = 1;
+
+// Card definitions: id, icon, title, fields [{key,label,hl,urg}]
+const cardDefs = {
+  outbound: { icon:'🛫', title:'Outbound Flight', prefix:'ob', fields:[
+    {k:'airline',l:'Airline'},{k:'flightNo',l:'Flight No.',hl:true},{k:'date',l:'Date'},
+    {k:'departs',l:'Departs',hl:true},{k:'arrives',l:'Arrives'},{k:'booking',l:'Booking Ref',hl:true},
+    {k:'seat',l:'Seat(s)'},{k:'baggage',l:'Baggage'},{k:'checkin',l:'Check-in Opens'}
+  ]},
+  inbound: { icon:'🛬', title:'Return Flight', prefix:'ib', fields:[
+    {k:'airline',l:'Airline'},{k:'flightNo',l:'Flight No.',hl:true},{k:'date',l:'Date'},
+    {k:'departs',l:'Departs',hl:true},{k:'arrives',l:'Arrives'},{k:'booking',l:'Booking Ref',hl:true},
+    {k:'seat',l:'Seat(s)'},{k:'terminal',l:'Terminal'}
+  ]},
+  hotel: { icon:'🏨', title:'Hotel', prefix:'h', fields:[
+    {k:'name',l:'Name',hl:true},{k:'address',l:'Address'},{k:'phone',l:'Phone',hl:true},
+    {k:'email',l:'Email'},{k:'confirmation',l:'Confirmation',hl:true},{k:'checkin',l:'Check-in'},
+    {k:'checkout',l:'Check-out'},{k:'nights',l:'Nights'},{k:'room',l:'Room Type'},
+    {k:'breakfast',l:'Breakfast'},{k:'wifi',l:'WiFi'},{k:'parking',l:'Parking'},{k:'notes',l:'Notes'}
+  ]},
+  parking: { icon:'🅿️', title:'Parking Details', prefix:'p', fields:[
+    {k:'location',l:'Car Park'},{k:'bay',l:'Level / Bay',hl:true},{k:'terminal',l:'Terminal'},
+    {k:'shuttle',l:'Shuttle Bus'},{k:'booking',l:'Booking Ref'},{k:'cost',l:'Cost'},{k:'returnNote',l:'Return Note',hl:true}
+  ]},
+  carhire: { icon:'🚗', title:'Car Hire', prefix:'c', fields:[
+    {k:'company',l:'Company'},{k:'booking',l:'Booking Ref',hl:true},{k:'pickup',l:'Pick-up'},
+    {k:'dropoff',l:'Drop-off'},{k:'vehicle',l:'Vehicle'},{k:'insurance',l:'Insurance'},
+    {k:'phone',l:'Phone',hl:true},{k:'fuel',l:'Fuel Policy'},{k:'extras',l:'Extras'}
+  ]},
+  insurance: { icon:'🛡️', title:'Travel Insurance', prefix:'ins', fields:[
+    {k:'provider',l:'Provider'},{k:'policy',l:'Policy No.',hl:true},{k:'emergency',l:'Emergency Line',urg:true},
+    {k:'medical',l:'Medical Cover'},{k:'cancellation',l:'Cancellation'},{k:'excess',l:'Excess'},{k:'expires',l:'Valid Until'}
+  ]},
+  passports: { icon:'🪪', title:'Passports & ID', prefix:'pp', fields:[
+    {k:'p1name',l:'Traveller 1'},{k:'p1num',l:'Passport No. 1',hl:true},{k:'p1exp',l:'Expiry 1',urg:true},
+    {k:'p2name',l:'Traveller 2'},{k:'p2num',l:'Passport No. 2',hl:true},{k:'p2exp',l:'Expiry 2',urg:true},
+    {k:'driving',l:'Driving Licence'}
+  ]},
+  emergency: { icon:'🆘', title:'Emergency Contacts', prefix:'em', fields:[
+    {k:'local',l:'Local Emergency',urg:true},{k:'police',l:'Local Police'},{k:'embassy',l:'Embassy'},
+    {k:'hospital',l:'Nearest Hospital'},{k:'contact1',l:'Home Contact 1'},{k:'contact2',l:'Home Contact 2'},
+    {k:'bank',l:'Bank — Lost Card',hl:true}
+  ]},
+  dining1: { icon:'🍽️', title:'Restaurant 1', prefix:'d1', fields:[
+    {k:'name',l:'Name',hl:true},{k:'date',l:'Date & Time'},{k:'address',l:'Address'},
+    {k:'phone',l:'Phone',hl:true},{k:'booking',l:'Booking Ref'},{k:'notes',l:'Notes'}
+  ]},
+  dining2: { icon:'🍽️', title:'Restaurant 2', prefix:'d2', fields:[
+    {k:'name',l:'Name',hl:true},{k:'date',l:'Date & Time'},{k:'address',l:'Address'},
+    {k:'phone',l:'Phone',hl:true},{k:'booking',l:'Booking Ref'},{k:'notes',l:'Notes'}
+  ]},
+  activity1: { icon:'🎭', title:'Activity 1', prefix:'a1', fields:[
+    {k:'name',l:'Activity',hl:true},{k:'date',l:'Date & Time'},{k:'meeting',l:'Meeting Point'},
+    {k:'operator',l:'Operator'},{k:'phone',l:'Phone',hl:true},{k:'booking',l:'Booking Ref'},{k:'cost',l:'Cost'},{k:'notes',l:'Notes'}
+  ]},
+  activity2: { icon:'🎭', title:'Activity 2', prefix:'a2', fields:[
+    {k:'name',l:'Activity',hl:true},{k:'date',l:'Date & Time'},{k:'meeting',l:'Meeting Point'},
+    {k:'operator',l:'Operator'},{k:'phone',l:'Phone',hl:true},{k:'booking',l:'Booking Ref'},{k:'cost',l:'Cost'},{k:'notes',l:'Notes'}
+  ]},
+};
+
+const catColors = {flights:'#3B82F6',accommodation:'#1A6B72',dining:'#E8634A',activities:'#C9A84C',transport:'#8B5CF6',shopping:'#EC4899',other:'#8FA8A0'};
+const catEmoji  = {flights:'✈️',accommodation:'🏨',dining:'🍽️',activities:'🎭',transport:'🚗',shopping:'🛍️',other:'📌'};
+
+// ── Init all card views ────────────────────────────────
+function initAllCards() {
+  Object.keys(cardDefs).forEach(id => renderCardView(id));
+}
+
+function renderCardView(id) {
+  const def = cardDefs[id];
+  const data = cards[id] || {};
+  const el = document.getElementById('view-'+id);
+  if (!el) return;
+  const hasAny = def.fields.some(f => data[f.k]);
+  let rows = '';
+  if (hasAny) {
+    def.fields.forEach(f => {
+      if (data[f.k]) {
+        rows += `<div class="info-row"><div class="info-label">${f.l}</div><div class="info-value ${f.hl?'hl':''} ${f.urg?'urg':''}">${data[f.k]}</div></div>`;
+      }
+    });
+  } else {
+    rows = '<div class="info-empty">Tap Edit to add details</div>';
+  }
+  el.innerHTML = `
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="info-card-title">${def.icon} ${def.title}</div>
+        <button class="edit-btn" onclick="openCard('${id}')">Edit</button>
+      </div>
+      <div class="info-fields">${rows}</div>
+    </div>`;
+}
+
+function openCard(id) {
+  const def = cardDefs[id];
+  const data = cards[id] || {};
+  def.fields.forEach(f => {
+    const el = document.getElementById(def.prefix+'-'+f.k);
+    if (el) el.value = data[f.k] || '';
+  });
+  document.getElementById('form-'+id).classList.add('open');
+  document.getElementById('view-'+id).style.display = 'none';
+}
+
+function saveCard(id) {
+  const def = cardDefs[id];
+  const data = {};
+  def.fields.forEach(f => {
+    const el = document.getElementById(def.prefix+'-'+f.k);
+    if (el) data[f.k] = el.value;
+  });
+  cards[id] = data;
+  document.getElementById('form-'+id).classList.remove('open');
+  document.getElementById('view-'+id).style.display = '';
+  renderCardView(id);
+  updateReport();
+  showToast('Saved ✓');
+}
+
+function cancelCard(id) {
+  document.getElementById('form-'+id).classList.remove('open');
+  document.getElementById('view-'+id).style.display = '';
+}
+
+// ── Trip header ────────────────────────────────────────
+function toggleTripEdit() {
+  const f = document.getElementById('tripEditForm');
+  f.classList.toggle('hidden');
+  if (!f.classList.contains('hidden')) {
+    document.getElementById('tName').value = tripInfo.name;
+    document.getElementById('tDest').value = tripInfo.destination;
+    document.getElementById('tDates').value = tripInfo.dates;
+    document.getElementById('tTravelers').value = tripInfo.travelers;
+  }
+}
+function saveTripInfo() {
+  tripInfo.name = document.getElementById('tName').value;
+  tripInfo.destination = document.getElementById('tDest').value;
+  tripInfo.dates = document.getElementById('tDates').value;
+  tripInfo.travelers = document.getElementById('tTravelers').value;
+  document.getElementById('tripName').textContent = tripInfo.name || 'Your Trip Name';
+  document.getElementById('tripDates').textContent =
+    tripInfo.destination && tripInfo.dates ? tripInfo.destination+' · '+tripInfo.dates :
+    tripInfo.destination || 'Tap Edit Trip to set your details';
+  toggleTripEdit();
+  updateReport();
+  showToast('Trip details saved ✓');
+}
+
+// ── Photos ─────────────────────────────────────────────
+function handlePhoto(type, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const slotId = type+'Slot';
+    const slot = document.getElementById(slotId);
+    slot.innerHTML = `
+      <img src="${e.target.result}" alt="${type}"/>
+      <button class="clear-photo" onclick="clearPhoto('${type}','${slotId}',event)">✕</button>`;
+    showToast(type==='parking'?'Parking photo saved 🅿️':'Transfer photo saved 🚌');
+  };
+  reader.readAsDataURL(file);
+}
+function clearPhoto(type, slotId, evt) {
+  evt.stopPropagation();
+  const icon = type==='parking'?'📷':'📷';
+  const label = type==='parking'?'Tap to photograph your parking spot':'Tap to photograph your bus stop or drop-off';
+  const slot = document.getElementById(slotId);
+  slot.innerHTML = `<div class="photo-slot-icon">${icon}</div><div class="photo-slot-label">${label}</div>`;
+  document.getElementById(type+'Input').value = '';
+}
+
+// ── Expenses ───────────────────────────────────────────
+function addExpense() {
+  const desc = document.getElementById('exp-desc').value.trim();
+  const amount = parseFloat(document.getElementById('exp-amount').value);
+  if (!desc || isNaN(amount)) { showToast('Add a description and amount'); return; }
+  const exp = {
+    id: expIdCounter++,
+    desc,
+    amount,
+    date: document.getElementById('exp-date').value,
+    category: document.getElementById('exp-cat').value,
+    paid: document.getElementById('exp-paid').checked
+  };
+  expenses.push(exp);
+  document.getElementById('exp-desc').value='';
+  document.getElementById('exp-amount').value='';
+  document.getElementById('exp-date').value='';
+  document.getElementById('exp-paid').checked=false;
+  renderExpenses();
+  updateReport();
+  showToast('Expense added ✓');
+}
+function deleteExpense(id) {
+  expenses = expenses.filter(e=>e.id!==id);
+  renderExpenses();
+  updateReport();
+}
+function renderExpenses() {
+  const total = expenses.reduce((a,e)=>a+e.amount,0);
+  const paid  = expenses.filter(e=>e.paid).reduce((a,e)=>a+e.amount,0);
+  const pct   = Math.min((total/BUDGET)*100,100);
+  const over  = total>BUDGET;
+  document.getElementById('totalSpend').textContent = '$'+total.toLocaleString();
+  document.getElementById('paidAmt').textContent = 'Paid: $'+paid.toLocaleString();
+  document.getElementById('barFill').style.width = pct+'%';
+  document.getElementById('barFill').style.background = over?'#E8634A':'#1A6B72';
+  const st = document.getElementById('budgetStatus');
+  st.textContent = over ? '⚠️ $'+(total-BUDGET).toLocaleString()+' over budget' : '✓ $'+(BUDGET-total).toLocaleString()+' remaining';
+  st.className = 'bstatus '+(over?'warn':'ok');
+  const list = document.getElementById('expenseList');
+  if (!expenses.length) { list.innerHTML='<div class="empty-msg">No expenses yet — add your first one above</div>'; return; }
+  list.innerHTML = expenses.map(e=>`
+    <div class="exp-item">
+      <div class="exp-dot" style="background:${catColors[e.category]||'#8FA8A0'}"></div>
+      <div class="exp-info">
+        <div class="exp-desc">${e.desc}</div>
+        <div class="exp-meta">${catEmoji[e.category]||''} ${e.category}${e.date?' · '+e.date:''}</div>
+      </div>
+      <div class="exp-right">
+        <div class="exp-amt">$${e.amount.toLocaleString()}</div>
+        <span class="paid-badge ${e.paid?'paid':'unpaid'}">${e.paid?'Paid':'Planned'}</span>
+      </div>
+      <button class="del-btn" onclick="deleteExpense(${e.id})">✕</button>
+    </div>`).join('');
+}
+
+// ── Reviews / Notes ────────────────────────────────────
+function setStars(n) {
+  currentStars = n;
+  const btns = document.getElementById('starsRow').querySelectorAll('.star-btn');
+  btns.forEach((b,i) => b.textContent = i<n?'⭐':'☆');
+}
+function addReview() {
+  const place = document.getElementById('rev-place').value.trim();
+  const text  = document.getElementById('rev-text').value.trim();
+  if (!place||!currentStars||!text) { showToast('Fill in all fields'); return; }
+  reviews.unshift({place,stars:currentStars,text,date:'Today'});
+  document.getElementById('rev-place').value='';
+  document.getElementById('rev-text').value='';
+  setStars(0);
+  renderReviews();
+  updateReport();
+  showToast('Note saved ✓');
+}
+function renderReviews() {
+  const list = document.getElementById('reviewList');
+  if (!reviews.length) { list.innerHTML='<div class="empty-msg">No notes yet — add your first one above</div>'; return; }
+  list.innerHTML = reviews.map(r=>`
+    <div class="review-card">
+      <div class="review-header">
+        <div class="review-place">${r.place}</div>
+        <div style="font-size:12px">${'⭐'.repeat(r.stars)}</div>
+      </div>
+      <div class="review-text">${r.text}</div>
+      <div class="review-date">${r.date}</div>
+    </div>`).join('');
+}
+
+// ── Report ─────────────────────────────────────────────
+function updateReport() {
+  const total = expenses.reduce((a,e)=>a+e.amount,0);
+  const paid  = expenses.filter(e=>e.paid).reduce((a,e)=>a+e.amount,0);
+  const over  = total>BUDGET;
+  const avgR  = reviews.length?(reviews.reduce((a,r)=>a+r.stars,0)/reviews.length).toFixed(1)+'★':'—';
+  document.getElementById('rptName').textContent    = tripInfo.name||'Your Trip';
+  document.getElementById('rptDates').textContent   = (tripInfo.destination&&tripInfo.dates)?tripInfo.destination+' · '+tripInfo.dates:(tripInfo.destination||'Set your trip details above');
+  document.getElementById('rptExpCount').textContent = expenses.length;
+  document.getElementById('rptTotal').textContent   = '$'+total.toLocaleString();
+  document.getElementById('rptNotes').textContent   = reviews.length;
+  document.getElementById('rptRating').textContent  = avgR;
+
+  const ob = cards.outbound||{}, ib = cards.inbound||{};
+  document.getElementById('rptFlights').innerHTML = (ob.flightNo||ib.flightNo)?`
+    <div class="report-section">Flights</div>
+    ${ob.flightNo?`<div class="report-row"><span class="rr-l">🛫 Outbound</span><span class="rr-v" style="color:#1A6B72;font-weight:500">${ob.flightNo}${ob.departs?' · '+ob.departs:''}</span></div>`:''}
+    ${ib.flightNo?`<div class="report-row"><span class="rr-l">🛬 Return</span><span class="rr-v" style="color:#1A6B72;font-weight:500">${ib.flightNo}${ib.departs?' · '+ib.departs:''}</span></div>`:''}
+    ${ob.booking?`<div class="report-row"><span class="rr-l">Booking Ref</span><span class="rr-v" style="color:#1A6B72;font-weight:500">${ob.booking}</span></div>`:''}
+  `:'';
+
+  const h = cards.hotel||{};
+  document.getElementById('rptHotel').innerHTML = h.name?`
+    <div class="report-section">Accommodation</div>
+    <div class="report-row"><span class="rr-l">🏨 Hotel</span><span class="rr-v">${h.name}</span></div>
+    ${h.phone?`<div class="report-row"><span class="rr-l">Phone</span><span class="rr-v" style="color:#1A6B72">${h.phone}</span></div>`:''}
+    ${h.confirmation?`<div class="report-row"><span class="rr-l">Confirmation</span><span class="rr-v" style="color:#1A6B72;font-weight:500">${h.confirmation}</span></div>`:''}
+    ${h.checkin?`<div class="report-row"><span class="rr-l">Check-in</span><span class="rr-v">${h.checkin}</span></div>`:''}
+    ${h.checkout?`<div class="report-row"><span class="rr-l">Check-out</span><span class="rr-v">${h.checkout}</span></div>`:''}
+  `:'';
+
+  const ins = cards.insurance||{};
+  document.getElementById('rptInsurance').innerHTML = ins.policy?`
+    <div class="report-section">Insurance</div>
+    <div class="report-row"><span class="rr-l">Policy No.</span><span class="rr-v" style="color:#1A6B72;font-weight:500">${ins.policy}</span></div>
+    ${ins.emergency?`<div class="report-row"><span class="rr-l">Emergency Line</span><span class="rr-v" style="color:#E8634A;font-weight:500">${ins.emergency}</span></div>`:''}
+  `:'';
+
+  const em = cards.emergency||{};
+  document.getElementById('rptEmergency').innerHTML = em.local?`
+    <div class="report-section">Emergency</div>
+    <div class="report-row"><span class="rr-l">Local Emergency</span><span class="rr-v" style="color:#E8634A;font-weight:500">${em.local}</span></div>
+    ${em.bank?`<div class="report-row"><span class="rr-l">Bank — Lost Card</span><span class="rr-v">${em.bank}</span></div>`:''}
+  `:'';
+
+  document.getElementById('rptBudget').innerHTML = expenses.length?`
+    <div class="report-section">Budget Summary</div>
+    <div class="report-row"><span class="rr-l">Total Planned</span><span class="rr-v" style="color:${over?'#E8634A':'#1A6B72'};font-weight:500">$${total.toLocaleString()}</span></div>
+    <div class="report-row"><span class="rr-l">Paid</span><span class="rr-v">$${paid.toLocaleString()}</span></div>
+    <div class="report-row"><span class="rr-l">Still to Pay</span><span class="rr-v">$${(total-paid).toLocaleString()}</span></div>
+  `:'';
+
+  document.getElementById('rptNotesList').innerHTML = reviews.length?`
+    <div class="report-section">Trip Notes</div>
+    ${reviews.map(r=>`<div class="report-row"><span class="rr-l" style="max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.place}</span><span class="rr-v">${'⭐'.repeat(r.stars)}</span></div>`).join('')}
+  `:'';
+}
+
+// ── Nav ────────────────────────────────────────────────
+function showTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── Toast ──────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ── Boot ───────────────────────────────────────────────
+initAllCards();
+renderExpenses();
+renderReviews();
+updateReport();
+</script>
+</body>
+</html>
